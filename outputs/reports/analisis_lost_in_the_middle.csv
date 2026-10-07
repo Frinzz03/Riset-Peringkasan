@@ -1,0 +1,7 @@
+topik_id,topik,head_recall,middle_recall,tail_recall,middle_decay
+mabuk_perjalanan,Obat Alami Mabuk Perjalanan,0.433,0.3153,0.3673,0.1177
+vitamin_d,Kekurangan Vitamin D,0.4505,0.4454,0.3882,0.0052
+diabetes_melitus,Diabetes Melitus,0.4211,0.2931,0.3922,0.1279
+hipertensi,Hipertensi (Darah Tinggi),0.5591,0.4608,0.5,0.0984
+asam_urat,Asam Urat (Gout),0.4235,0.405,0.2759,0.0186
+lemak_visceral,Lemak Visceral & Sindrom Metabolik,0.3235,0.4516,0.5094,0.0578

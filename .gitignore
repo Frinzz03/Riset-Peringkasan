@@ -1,0 +1,28 @@
+# Environment variables & API Keys (CRITICAL: NEVER COMMIT)
+.env
+*.env
+*.env.*
+.env.local
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# Temporary, Scratch, and Archive files
+*.tmp
+*.log
+scratch/
+outputs/temp/
+archive/
+
+# Markdown planning and notes files (not used in code)
+*.md
+!README.md
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

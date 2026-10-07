@@ -1,0 +1,19 @@
+topik_id,topik,top_k,has_info_loss,has_redundancy,has_hallucination,has_incoherence,has_length_anomaly,word_count
+mabuk_perjalanan,Obat Alami Mabuk Perjalanan,3,0,1,1,0,0,172
+mabuk_perjalanan,Obat Alami Mabuk Perjalanan,5,0,0,1,0,0,122
+mabuk_perjalanan,Obat Alami Mabuk Perjalanan,10,0,1,1,0,0,199
+vitamin_d,Kekurangan Vitamin D,3,0,0,1,0,0,123
+vitamin_d,Kekurangan Vitamin D,5,0,0,1,0,0,129
+vitamin_d,Kekurangan Vitamin D,10,0,1,0,0,0,217
+diabetes_melitus,Diabetes Melitus,3,0,0,1,0,0,142
+diabetes_melitus,Diabetes Melitus,5,0,0,1,0,1,224
+diabetes_melitus,Diabetes Melitus,10,0,1,1,0,1,281
+hipertensi,Hipertensi (Darah Tinggi),3,0,1,1,0,1,222
+hipertensi,Hipertensi (Darah Tinggi),5,0,0,1,0,0,177
+hipertensi,Hipertensi (Darah Tinggi),10,0,0,1,0,1,226
+asam_urat,Asam Urat (Gout),3,0,0,1,0,0,122
+asam_urat,Asam Urat (Gout),5,0,0,1,0,0,135
+asam_urat,Asam Urat (Gout),10,0,1,1,0,0,210
+lemak_visceral,Lemak Visceral & Sindrom Metabolik,3,0,0,1,0,0,150
+lemak_visceral,Lemak Visceral & Sindrom Metabolik,5,1,1,0,0,1,228
+lemak_visceral,Lemak Visceral & Sindrom Metabolik,10,0,0,0,0,0,205
