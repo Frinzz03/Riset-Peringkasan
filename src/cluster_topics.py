@@ -1214,7 +1214,9 @@ TAXONOMY = [
 ]
 
 def run_clustering():
-    dataset_path = os.path.join("data", "berita_kesehatan_fix.csv")
+    dataset_path = os.path.join("data", "berita_kesehatan_clean.csv")
+    if not os.path.exists(dataset_path):
+        dataset_path = os.path.join("data", "berita_kesehatan_fix.csv")
     print(f"Membaca dataset utama: {dataset_path} ...")
     df = pd.read_csv(dataset_path, sep="|")
     total_rows = len(df)

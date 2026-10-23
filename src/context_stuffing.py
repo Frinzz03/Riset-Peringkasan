@@ -20,11 +20,12 @@ DAFTAR DOKUMEN BERITA TERKAIT (CONTEXT STUFFING):
 {context_str}
 
 INSTRUKSI PENGRINGKASAN:
-1. Gabungkan poin-poin informasi penting dari seluruh DOKUMEN di atas menjadi satu ringkasan multi-dokumen yang utuh.
-2. Hindari pengulangan informasi (redundansi) antar berita.
-3. Pertahankan fakta utama, gejala, penyebab, obat/solusi, dan statistik penting jika ada.
-4. JANGAN menambahkan informasi di luar teks konteks di atas (hindari halusinasi).
-5. Tuliskan ringkasan dalam bentuk paragraf terstruktur dan poin-poin penting dalam Bahasa Indonesia yang formal dan mudah dipahami.
+1. Gabungkan poin-poin informasi penting dari seluruh DOKUMEN di atas menjadi satu ringkasan multi-dokumen yang utuh dan mengalir.
+2. JANGAN menyebutkan sumber dokumen secara eksplisit (seperti "Menurut Dokumen 1...", "Dokumen 2 menyebutkan...", dsb.). Integrasikan gagasan secara natural menjadi satu narasi utuh.
+3. Hindari pengulangan informasi (redundansi) antar berita.
+4. Pertahankan fakta utama, gejala, penyebab, obat/solusi, dan statistik penting jika ada.
+5. JANGAN menambahkan informasi di luar teks konteks di atas (hindari halusinasi).
+6. Tuliskan ringkasan dalam bentuk paragraf terstruktur dan poin-poin penting dalam Bahasa Indonesia yang formal dan mudah dipahami.
 
 RINGKASAN MULTI-DOKUMEN:"""
 

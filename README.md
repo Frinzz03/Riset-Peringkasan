@@ -45,17 +45,24 @@ pip install -r requirements.txt
 
 ---
 
-### 3. Pembangunan Vector Database (Indexing Dataset)
+### 3. Pembangunan / Unduh Vector Database (Indexing Dataset)
 
-Jalankan script untuk membaca dataset `data/berita_kesehatan_fix.csv`, melakukan chunking, dan menyimpan indeks vektor ke ChromaDB lokal:
+#### Opsi A: Unduh Pre-built Vector Database & Dataset Bersih (Disarankan)
+Karena file indeks vektor `embeddings.npy` berukuran besar (>200 MB) dan dataset korpus bersih `berita_kesehatan_clean.csv` berukuran ~73 MB, file-file tersebut di-hosting di Google Drive agar repositori GitHub tetap sangat ringan dan cepat di-clone:
+- 🔗 **Link Download Google Drive:** `[MASUKKAN_LINK_GOOGLE_DRIVE_DISINI]`
+- **Cara Penempatan:**  
+  Setelah mengunduh file dari tautan di atas, letakkan masing-masing file pada lokasi berikut:
+  ```text
+  outputs/index_db/embeddings.npy
+  data/berita_kesehatan_clean.csv
+  ```
 
+#### Opsi B: Pembangunan Index Mandiri (Incremental)
+Jika ingin melakukan indexing mandiri dari dataset mentah:
 ```bash
-# Indexing seluruh dataset (atau gunakan --limit-index 1000 untuk pengujian awal)
-python main.py --build-index
+# Memproses 100 dokumen baru secara inkremental (dokumen lama dilewati otomatis):
+python main.py --build-index --add-docs 100
 ```
-
-> **Catatan:** Untuk pengujian cepat pertama kali, Anda bisa menggunakan limit dokumen:
-> `python main.py --build-index --limit-index 500`
 
 ---
 

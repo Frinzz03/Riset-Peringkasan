@@ -112,20 +112,47 @@ def analyze_errors_systematic(query: str, retrieved_chunks: list, summary: str, 
         "word_count": word_count
     }
 
-def run_all_experiments():
+def run_all_experiments(benchmark_path: str = None, limit: int = None, filter_topic: str = None, top_k_list: list = None):
+    if top_k_list is None:
+        top_k_list = config.TOP_K_LIST
+
     print("==================================================================")
     print("      EKSEKUSI PENUH FASE 5: EKSPERIMEN PROPOSAL & EVALUASI")
     print(f"      Model LLM Generator : {config.DEFAULT_LLM_MODEL}")
     print(f"      Model Embedding     : {config.DEFAULT_EMBED_MODEL}")
-    print(f"      Konfigurasi Top-K   : {config.TOP_K_LIST} (E1, E2, E3)")
+    print(f"      Konfigurasi Top-K   : {top_k_list} (E1, E2, E3)")
     print("==================================================================\n")
     
-    # Muat benchmark data
-    benchmark_file = os.path.join(config.BASE_DIR, "data", "sample_benchmarks.json")
-    with open(benchmark_file, "r", encoding="utf-8") as f:
-        benchmarks = json.load(f)
+    # Deteksi lokasi file benchmark multi-dokumen resmi
+    if benchmark_path is None:
+        file_143 = os.path.join(config.BASE_DIR, "data", "multidoc_benchmarks_143.json")
+        if os.path.exists(file_143):
+            benchmark_path = file_143
+        else:
+            raise FileNotFoundError(
+                f"File benchmark multi-dokumen resmi tidak ditemukan di: {file_143}"
+            )
+            
+    if not os.path.exists(benchmark_path):
+        raise FileNotFoundError(f"File benchmark tidak ditemukan: {benchmark_path}")
         
-    print(f"Total Benchmark Klinis Terdaftar: {len(benchmarks)} topik.")
+    print(f"Memuat dataset benchmark dari: {benchmark_path}")
+    with open(benchmark_path, "r", encoding="utf-8") as f:
+        benchmarks = json.load(f)
+
+    # Filter topik tertentu jika diatur
+    if filter_topic:
+        f_lower = filter_topic.lower()
+        benchmarks = [b for b in benchmarks if f_lower in b.get("id", "").lower() or f_lower in b.get("title", "").lower()]
+        if not benchmarks:
+            print(f"[PERINGATAN] Tidak ditemukan topik dengan filter '{filter_topic}'.")
+            return
+
+    # Batasi jumlah topik jika limit diatur
+    if limit is not None and limit > 0:
+        benchmarks = benchmarks[:limit]
+
+    print(f"Total Benchmark Klinis yang Dievaluasi: {len(benchmarks)} topik.")
     for b in benchmarks:
         print(f" - [{b['id']}] {b['title']}: \"{b['query']}\"")
     print()
@@ -139,7 +166,7 @@ def run_all_experiments():
     error_records = []
     case_studies = []
 
-    total_runs = len(benchmarks) * len(config.TOP_K_LIST)
+    total_runs = len(benchmarks) * len(top_k_list)
     current_run = 0
 
     for b in benchmarks:
@@ -154,7 +181,7 @@ def run_all_experiments():
         print(f"Reference Summary ({len(ref_summary.split())} kata): \"{ref_summary[:100]}...\"")
         print(f"==================================================================")
 
-        for k in config.TOP_K_LIST:
+        for k in top_k_list:
             current_run += 1
             print(f"\n>>> [RUN {current_run}/{total_runs}] Skenario Top-K = {k} ...")
             
@@ -355,4 +382,19 @@ def print_proposal_summary_table(df_exp: pd.DataFrame, df_litm: pd.DataFrame, df
     print("="*70)
 
 if __name__ == "__main__":
-    run_all_experiments()
+    import argparse
+    parser = argparse.ArgumentParser(description="Eksekusi Eksperimen RAG Multi-Dokumen Berita Kesehatan")
+    parser.add_argument("--benchmark-file", "-b", type=str, default=None, help="Path ke file benchmark JSON (default: deteksi sample_benchmarks.json / multidoc_benchmarks_143.json)")
+    parser.add_argument("--limit", "-l", type=int, default=None, help="Batasi jumlah topik benchmark yang diuji (contoh: --limit 1 untuk test)")
+    parser.add_argument("--topik", "-t", type=str, default=None, help="Filter topik spesifik berdasarkan ID atau judul (contoh: --topik mabuk_perjalanan)")
+    parser.add_argument("--top-k", "-k", type=int, default=None, help="Jalankan hanya untuk Top-K spesifik (contoh: --top-k 5)")
+    args = parser.parse_args()
+
+    k_list = [args.top_k] if args.top_k is not None else None
+    run_all_experiments(
+        benchmark_path=args.benchmark_file,
+        limit=args.limit,
+        filter_topic=args.topik,
+        top_k_list=k_list
+    )
+

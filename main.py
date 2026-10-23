@@ -1,8 +1,15 @@
 import os
+import sys
 import time
 import argparse
 import pandas as pd
 import re
+
+if hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
 
 import config
 from src.data_loader import load_dataset
@@ -116,17 +123,58 @@ def run_experiment(query: str, reference_text: str = None, top_k_list: list = No
     
     return df_res
 
+def run_retrieval_test(query: str, top_k: int = 5, embed_model: str = config.DEFAULT_EMBED_MODEL):
+    """
+    Menjalankan pengujian retrieval (similarity search) secara mandiri tanpa generasi LLM.
+    Menampilkan metrik waktu retrieval, similarity score, dan daftar dokumen teratas.
+    """
+    print(f"\n==================================================================")
+    print(f"🔍 PENGUJIAN RETRIEVAL SIMILARITY SEARCH (RAG)")
+    print(f"Query           : '{query}'")
+    print(f"Top-K Target    : {top_k}")
+    print(f"Embedding Model : {embed_model}")
+    print(f"==================================================================\n")
+    
+    start_time = time.time()
+    retrieved_items = retrieve_top_k(query=query, top_k=top_k, embed_model=embed_model)
+    elapsed_time = time.time() - start_time
+    elapsed_ms = elapsed_time * 1000
+    
+    top_similarity = retrieved_items[0]["similarity"] * 100 if retrieved_items else 0.0
+    
+    print(f"--- [LOG PERFORMA RETRIEVAL] ---")
+    print(f"* Waktu Retrieval : {elapsed_ms:.2f} ms ({elapsed_time:.4f} detik)")
+    print(f"* Total Dokumen   : {len(retrieved_items)} chunks ditemukan")
+    print(f"* Top Similarity  : {top_similarity:.2f}%")
+    print("-" * 66 + "\n")
+    
+    print(f"📚 Daftar Dokumen Teratas (Top-{top_k}):\n")
+    for idx, item in enumerate(retrieved_items, 1):
+        sim_pct = item["similarity"] * 100
+        preview = item.get("chunk_text", "").replace("\n", " ").strip()
+        if len(preview) > 160:
+            preview = preview[:160] + "..."
+        print(f"[{idx}] Judul: {item.get('judul', 'Tanpa Judul')}")
+        print(f"    - Similarity : {item['similarity']:.4f} ({sim_pct:.2f}%)")
+        print(f"    - Doc ID     : {item.get('doc_id', '-')}")
+        print(f"    - Tanggal    : {item.get('tanggal', '-')}")
+        print(f"    - URL        : {item.get('url', '-')}")
+        print(f"    - Cuplikan   : \"{preview}\"")
+        print()
+    return retrieved_items
+
 def main():
     parser = argparse.ArgumentParser(description="Pipeline RAG Peringkasan Multi-Dokumen Berita Kesehatan dengan Ollama")
     parser.add_argument("--build-index", action="store_true", help="Jalankan proses chunking & pembangunan Vector DB dari CSV")
-    parser.add_argument("--limit-index", type=int, default=None, help="Batasi total baris dokumen awal dataset yang dicek (opsional)")
+    parser.add_argument("--limit", "--limit-index", "-l", dest="limit", type=int, default=None, help="Batasi total baris dokumen dataset yang dicek saat indexing (opsional, contoh: --limit 10)")
     parser.add_argument("--add-docs", type=int, default=None, help="Batasi jumlah dokumen BARU yang diproses pada sesi ini (misal: 1000)")
     parser.add_argument("--reset-index", action="store_true", help="Hapus index lama dan bangun ulang dari awal (secara default, dokumen lama di-skip)")
+    parser.add_argument("--test-retrieval", "--only-retrieval", action="store_true", help="Uji tahapan retrieval dokumen & cosine similarity tanpa generasi ringkasan LLM")
     parser.add_argument("--query", type=str, default="Tanda dan gejala kekurangan vitamin D serta dampaknya pada kesehatan", help="Query topik berita yang ingin dirangkum")
     parser.add_argument("--reference", type=str, default=None, help="Teks acuan/ground truth untuk menghitung evaluasi ROUGE (opsional)")
     parser.add_argument("--top-k", type=int, default=None, help="Tentukan jumlah dokumen Top-K spesifik (misal: 3, 5, atau 10). Jika tidak diisi, menguji semua [3, 5, 10]")
     parser.add_argument("--model", type=str, default=config.DEFAULT_LLM_MODEL, help="Nama model LLM Ollama (contoh: qwen3:1.7b atau qwen3:0.6b)")
-    parser.add_argument("--embed-model", type=str, default=config.DEFAULT_EMBED_MODEL, help="Nama model embedding Ollama (contoh: nomic-embed-text)")
+    parser.add_argument("--embed-model", type=str, default=config.DEFAULT_EMBED_MODEL, help="Nama model embedding Ollama (contoh: nomic-embed-text-v2-moe)")
     
     args = parser.parse_args()
     
@@ -135,7 +183,7 @@ def main():
         df = load_dataset(config.DATA_PATH, delimiter=config.CSV_DELIMITER)
         build_vector_database(
             df, 
-            limit=args.limit_index, 
+            limit=args.limit, 
             add_docs=args.add_docs, 
             embed_model=args.embed_model, 
             reset_index=args.reset_index
@@ -143,10 +191,20 @@ def main():
         print("Proses indexing selesai. Anda sekarang bisa menjalankan eksperimen RAG.")
         return
     
-    # 2. Menentukan Top-K
+    # 2. Pengujian Retrieval mandiri jika diminta
+    if args.test_retrieval:
+        top_k = args.top_k if args.top_k is not None else 5
+        run_retrieval_test(
+            query=args.query,
+            top_k=top_k,
+            embed_model=args.embed_model
+        )
+        return
+    
+    # 3. Menentukan Top-K
     top_k_list = [args.top_k] if args.top_k is not None else config.TOP_K_LIST
     
-    # 3. Menjalankan Eksperimen Peringkasan
+    # 4. Menjalankan Eksperimen Peringkasan Lengkap
     run_experiment(
         query=args.query,
         reference_text=args.reference,

@@ -165,11 +165,10 @@ st.markdown("""
 # -------------------------------------------------------------
 @st.cache_data
 def load_all_benchmarks():
-    """Memuat benchmark multi-dokumen (menggabungkan 143 klaster & sample_benchmarks)."""
+    """Memuat benchmark resmi multi-dokumen (100% murni dari multidoc_benchmarks_143.json)."""
     benchmarks = []
     seen_ids = set()
 
-    # 1. Coba baca file multidoc_benchmarks_143.json yang sedang dibuat
     file_143 = os.path.join(config.BASE_DIR, "data", "multidoc_benchmarks_143.json")
     if os.path.exists(file_143):
         try:
@@ -179,23 +178,8 @@ def load_all_benchmarks():
                     if item.get("id") not in seen_ids:
                         benchmarks.append(item)
                         seen_ids.add(item.get("id"))
-        except Exception:
-            pass
-
-    # 2. Gabungkan dengan sample_benchmarks.json (6 topik proposal resmi)
-    file_sample = os.path.join(config.BASE_DIR, "data", "sample_benchmarks.json")
-    if os.path.exists(file_sample):
-        try:
-            with open(file_sample, "r", encoding="utf-8") as f:
-                data_sample = json.load(f)
-                for item in data_sample:
-                    if item.get("id") not in seen_ids:
-                        if "category" not in item:
-                            item["category"] = "Topik Proposal Utama"
-                        benchmarks.append(item)
-                        seen_ids.add(item.get("id"))
-        except Exception:
-            pass
+        except Exception as e:
+            st.error(f"Gagal memuat benchmark multi-dokumen: {e}")
 
     return benchmarks
 
@@ -420,7 +404,7 @@ with st.sidebar:
         </div>
         <div style="font-size: 0.85rem; color: #cbd5e1; margin-top: 6px;">
             📚 <b>{unique_docs_cnt:,}</b> Dokumen | 🧬 <b>{total_chunks_cnt:,}</b> Chunks<br/>
-            🎯 Model: <code>nomic-embed-text</code> (768-D)
+            🎯 Model: <code>{config.DEFAULT_EMBED_MODEL}</code> (768-D)
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -449,38 +433,38 @@ with st.sidebar:
                     st.rerun()
 
     # Tombol Pintas Cepat (Quick Demo Pills)
-    st.markdown("##### ⚡ Akses Cepat Topik Populer:")
-    quick_cols = st.columns(2)
-    with quick_cols[0]:
-        if st.button("🩸 Diabetes", use_container_width=True):
-            for bm in benchmarks_list:
-                if "diabetes" in bm["id"].lower():
-                    st.session_state["selected_query"] = bm["query"]
-                    st.session_state["current_reference"] = bm["reference"]
-                    st.session_state["current_topic_title"] = bm["title"]
-                    st.rerun()
-        if st.button("🎗️ Kanker Payudara", use_container_width=True):
-            for bm in benchmarks_list:
-                if "payudara" in bm["id"].lower():
-                    st.session_state["selected_query"] = bm["query"]
-                    st.session_state["current_reference"] = bm["reference"]
-                    st.session_state["current_topic_title"] = bm["title"]
-                    st.rerun()
-    with quick_cols[1]:
-        if st.button("❤️ Hipertensi", use_container_width=True):
-            for bm in benchmarks_list:
-                if "hipertensi" in bm["id"].lower():
-                    st.session_state["selected_query"] = bm["query"]
-                    st.session_state["current_reference"] = bm["reference"]
-                    st.session_state["current_topic_title"] = bm["title"]
-                    st.rerun()
-        if st.button("🚗 Mabuk Jalan", use_container_width=True):
-            for bm in benchmarks_list:
-                if "mabuk" in bm["id"].lower():
-                    st.session_state["selected_query"] = bm["query"]
-                    st.session_state["current_reference"] = bm["reference"]
-                    st.session_state["current_topic_title"] = bm["title"]
-                    st.rerun()
+    # st.markdown("##### ⚡ Akses Cepat Topik Populer:")
+    # quick_cols = st.columns(2)
+    # with quick_cols[0]:
+    #     if st.button("🩸 Diabetes", use_container_width=True):
+    #         for bm in benchmarks_list:
+    #             if "diabetes" in bm["id"].lower():
+    #                 st.session_state["selected_query"] = bm["query"]
+    #                 st.session_state["current_reference"] = bm["reference"]
+    #                 st.session_state["current_topic_title"] = bm["title"]
+    #                 st.rerun()
+    #     if st.button("🎗️ Kanker Payudara", use_container_width=True):
+    #         for bm in benchmarks_list:
+    #             if "payudara" in bm["id"].lower():
+    #                 st.session_state["selected_query"] = bm["query"]
+    #                 st.session_state["current_reference"] = bm["reference"]
+    #                 st.session_state["current_topic_title"] = bm["title"]
+    #                 st.rerun()
+    # with quick_cols[1]:
+    #     if st.button("❤️ Hipertensi", use_container_width=True):
+    #         for bm in benchmarks_list:
+    #             if "hipertensi" in bm["id"].lower():
+    #                 st.session_state["selected_query"] = bm["query"]
+    #                 st.session_state["current_reference"] = bm["reference"]
+    #                 st.session_state["current_topic_title"] = bm["title"]
+    #                 st.rerun()
+    #     if st.button("🚗 Mabuk Jalan", use_container_width=True):
+    #         for bm in benchmarks_list:
+    #             if "mabuk" in bm["id"].lower():
+    #                 st.session_state["selected_query"] = bm["query"]
+    #                 st.session_state["current_reference"] = bm["reference"]
+    #                 st.session_state["current_topic_title"] = bm["title"]
+    #                 st.rerun()
 
     st.markdown("---")
     st.markdown("#### ⚙️ Konfigurasi Sistem RAG")
@@ -489,7 +473,7 @@ with st.sidebar:
         "Jumlah Dokumen Terambil (Top-K):",
         [3, 5, 10],
         index=1,
-        format_func=lambda x: f"Top-K = {x} (Optimal / Rekomendasi)" if x == 5 else (f"Top-K = {x} (Cepat)" if x == 3 else f"Top-K = {x} (Konteks Penuh)")
+        format_func=lambda x: f"Top-K = {x}" if x == 5 else (f"Top-K = {x}" if x == 3 else f"Top-K = {x}")
     )
 
     model_name = st.selectbox(
@@ -742,294 +726,144 @@ with tab_demo:
                 st.code(text_body, language="text")
 
 # =============================================================
-# TAB 2: DASHBOARD EVALUASI & ERROR ANALYSIS (RISET SKRIPSI)
+# TAB 2: DASHBOARD EVALUASI & ERROR ANALYSIS (REAL-TIME)
 # =============================================================
 with tab_eval:
-    st.markdown("### 🔬 Evaluasi Sistem RAG & Analisis Galat Medis")
+    st.markdown("### 🔬 Evaluasi Sistem RAG & Analisis Galat Medis Real-Time")
     st.markdown("""
-    Dashboard ini menyediakan dua mode evaluasi: **Audit Real-Time** terhadap ringkasan yang baru saja Anda uji, 
-    serta **Benchmark Historis** untuk pembuktian komparatif pada sidang skripsi.
+    Halaman ini menyediakan **Audit Kualitas Klinis & Evaluasi ROUGE Real-Time** terhadap ringkasan multi-dokumen yang dihasilkan pada sesi aktif sistem.
     """)
-
-    eval_focus = st.radio(
-        "Pilih Fokus Evaluasi:",
-        [
-            "⚡ Audit Real-Time (Hasil Uji Sesi Saat Ini)",
-            "📚 Benchmark Historis Skripsi (18 Skenario Bab 4)"
-        ],
-        horizontal=True
-    )
     st.markdown("---")
 
-    if eval_focus == "⚡ Audit Real-Time (Hasil Uji Sesi Saat Ini)":
-        res_current = st.session_state.get("last_results")
-        if not res_current or not res_current.get("audit"):
-            st.info("""
-            💡 **Belum Ada Pengujian pada Sesi Ini**  
-            Silakan buka **Tab 1 ('🩺 Demo Peringkasan Interaktif')**, ketik atau pilih topik berita kesehatan, lalu klik tombol **'Mulai Peringkasan Multi-Dokumen'**.  
-            Sistem akan otomatis menghitung audit 5 indikator galat medis dan skor ROUGE secara real-time pada bagian ini!
-            """)
-        else:
-            audit_curr = res_current.get("audit")
-            rouge_curr = res_current.get("rouge")
-            
-            # Header Uji Saat Ini
-            st.markdown(f"""
-            <div style="background: rgba(30, 41, 59, 0.6); padding: 16px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 20px;">
-                <div style="font-size: 0.85rem; color: #94a3b8;">📌 Topik / Query yang Diuji: <b>"{res_current['query']}"</b></div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-                    <span style="font-size: 1.15rem; font-weight: 700; color: {audit_curr['grade_badge']};">
-                        🏆 Evaluasi Kelayakan: {audit_curr['grade']}
-                    </span>
-                    <span style="font-size: 0.82rem; color: #cbd5e1;">
-                        ⚙️ Model: <b>{res_current['model']}</b> | Top-K: <b>{res_current['top_k']}</b> | Latensi Total: <b>{res_current['ret_latency'] + res_current['gen_latency']:.2f}s</b>
-                    </span>
-                </div>
-                <div style="font-size: 0.85rem; color: #cbd5e1; margin-top: 8px; line-height: 1.5;">
-                    📝 <b>Catatan Klinis:</b> {audit_curr['verdict']}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # 5 LIVE KPI METRICS
-            st.markdown("#### 1. Status 5 Indikator Galat Medis Real-Time")
-            c1, c2, c3, c4, c5 = st.columns(5)
-            
-            with c1:
-                col_loss = "#ef4444" if audit_curr["has_info_loss"] else "#10b981"
-                status_loss = "Ada Fakta Hilang" if audit_curr["has_info_loss"] else "0% Hilang (Terjaring)"
-                st.markdown(f"""
-                <div class="metric-card">
-                    <div class="metric-lbl">Information Loss</div>
-                    <div class="metric-val" style="color: {col_loss}; font-size: 1.25rem;">{status_loss}</div>
-                    <span style="font-size: 0.72rem; color: #94a3b8;">Retensi Kata: {audit_curr['q_retention_pct']}%</span>
-                </div>
-                """, unsafe_allow_html=True)
-                
-            with c2:
-                col_faith = "#10b981" if not audit_curr["has_hallucination"] else "#ef4444"
-                status_faith = "Bebas Halusinasi" if not audit_curr["has_hallucination"] else "Klaim Liar"
-                st.markdown(f"""
-                <div class="metric-card">
-                    <div class="metric-lbl">Faithfulness (Faktual)</div>
-                    <div class="metric-val" style="color: {col_faith};">{audit_curr['faithfulness_pct']}%</div>
-                    <span style="font-size: 0.72rem; color: #94a3b8;">{status_faith} (Korpus Berita)</span>
-                </div>
-                """, unsafe_allow_html=True)
-                
-            with c3:
-                col_incoh = "#10b981" if not audit_curr["has_incoherence"] else "#ef4444"
-                status_incoh = "Alur Mengalir Padu" if not audit_curr["has_incoherence"] else "Lompatan Topik"
-                st.markdown(f"""
-                <div class="metric-card">
-                    <div class="metric-lbl">Koherensi Alur Makna</div>
-                    <div class="metric-val" style="color: {col_incoh}; font-size: 1.25rem;">{audit_curr.get('coherence_pct', 100.0)}% Padu</div>
-                    <span style="font-size: 0.72rem; color: #94a3b8;">{status_incoh} ({audit_curr.get('valid_transitions', 0)}/{audit_curr.get('total_transitions', 0)} transisi)</span>
-                </div>
-                """, unsafe_allow_html=True)
-                
-            with c4:
-                col_redun = "#10b981" if not audit_curr["has_redundancy"] else "#f59e0b"
-                status_redun = "Bebas Repetisi" if not audit_curr["has_redundancy"] else "Ada Pengulangan"
-                st.markdown(f"""
-                <div class="metric-card">
-                    <div class="metric-lbl">Redundansi</div>
-                    <div class="metric-val" style="color: {col_redun}; font-size: 1.25rem;">{status_redun}</div>
-                    <span style="font-size: 0.72rem; color: #94a3b8;">Pemeriksaan n-gram repetitif</span>
-                </div>
-                """, unsafe_allow_html=True)
-                
-            with c5:
-                col_len = "#38bdf8" if not audit_curr["has_length_anomaly"] else "#f59e0b"
-                status_len = "Ideal (70-240 kata)" if not audit_curr["has_length_anomaly"] else "Anomali Panjang"
-                st.markdown(f"""
-                <div class="metric-card">
-                    <div class="metric-lbl">Panjang Teks</div>
-                    <div class="metric-val" style="color: {col_len};">{audit_curr['word_count']} Kata</div>
-                    <span style="font-size: 0.72rem; color: #94a3b8;">{status_len}</span>
-                </div>
-                """, unsafe_allow_html=True)
-
-            st.markdown("---")
-
-            # 2. PEMERIKSAAN 3 PILAR MEDIS & DETAIL ROUGE
-            col_pil, col_rg = st.columns([1, 1])
-            with col_pil:
-                st.markdown("#### 2. Kepatuhan Kaidah 3 Pilar Medis")
-                p1_icon = "✅" if audit_curr["pilar_1"] else "❌"
-                p2_icon = "✅" if audit_curr["pilar_2"] else "❌"
-                p3_icon = "✅" if audit_curr["pilar_3"] else "❌"
-                st.markdown(f"""
-                - {p1_icon} **Pilar 1: Etiologi & Definisi Klinis** *(Menerangkan penyebab / mekanisme gangguan kesehatan)*
-                - {p2_icon} **Pilar 2: Gejala & Manifestasi Klinis** *(Menerangkan tanda-tanda yang dialami pasien)*
-                - {p3_icon} **Pilar 3: Solusi, Terapi & Pencegahan** *(Menerangkan pengobatan, gaya hidup, atau mitigasi)*
-                """)
-                st.caption(f"Skor Pemenuhan Pilar: **{audit_curr['pilar_count']} / 3 Pilar Terpenuhi**.")
-
-            with col_rg:
-                st.markdown("#### 3. Rincian Skor Evaluasi ROUGE Real-Time")
-                if rouge_curr:
-                    st.markdown(f"""
-                    - **ROUGE-1 (Unigram):** F1 = `{rouge_curr.get('rouge1', 0):.4f}` | Presisi: `{rouge_curr.get('rouge1_precision', 0):.4f}` | Recall: `{rouge_curr.get('rouge1_recall', 0):.4f}`
-                    - **ROUGE-2 (Bigram):** F1 = `{rouge_curr.get('rouge2', 0):.4f}` | Presisi: `{rouge_curr.get('rouge2_precision', 0):.4f}` | Recall: `{rouge_curr.get('rouge2_recall', 0):.4f}`
-                    - **ROUGE-L (Fluensi):** F1 = `{rouge_curr.get('rougeL', 0):.4f}` | Presisi: `{rouge_curr.get('rougeL_precision', 0):.4f}` | Recall: `{rouge_curr.get('rougeL_recall', 0):.4f}`
-                    """)
-                    if res_current.get("topic_title"):
-                        st.caption(f"📌 Dihitung terhadap Ground Truth: **{res_current['topic_title']}**")
-                else:
-                    st.info("ROUGE tidak dihitung karena teks acuan emas (*ground truth*) tidak ditemukan untuk query bebas ini.")
-
-            st.markdown("---")
-
-            # 3. KOMPARASI BERDAMPINGAN: RINGKASAN VS GROUND TRUTH
-            if res_current.get("reference"):
-                with st.expander("🔍 Komparasi Teks Berdampingan (Ringkasan AI vs Acuan Emas Ground Truth)", expanded=True):
-                    cmp1, cmp2 = st.columns(2)
-                    with cmp1:
-                        st.markdown("**🤖 Ringkasan Hasil Generasi RAG AI:**")
-                        st.write(res_current["summary"])
-                    with cmp2:
-                        st.markdown("**🎯 Teks Acuan Emas (Multi-Doc Ground Truth):**")
-                        st.write(res_current["reference"])
-
+    res_current = st.session_state.get("last_results")
+    if not res_current or not res_current.get("audit"):
+        st.info("""
+        💡 **Belum Ada Pengujian pada Sesi Ini**  
+        Silakan buka **Tab 1 ('🩺 Demo Peringkasan Interaktif')**, ketik atau pilih topik berita kesehatan, lalu klik tombol **'Mulai Peringkasan Multi-Dokumen'**.  
+        Sistem akan otomatis menghitung audit 5 indikator galat medis dan skor ROUGE secara real-time pada bagian ini!
+        """)
     else:
-        # TAMPILAN HISTORIS (18 Skenario Bab 4)
-        st.markdown("#### 1. Rekapitulasi Frekuensi Galat Medis (N = 18 Skenario)")
-        e_col1, e_col2, e_col3, e_col4, e_col5 = st.columns(5)
+        audit_curr = res_current.get("audit")
+        rouge_curr = res_current.get("rouge")
         
-        with e_col1:
-            st.markdown("""
+        # Header Uji Saat Ini
+        st.markdown(f"""
+        <div style="background: rgba(30, 41, 59, 0.6); padding: 16px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 20px;">
+            <div style="font-size: 0.85rem; color: #94a3b8;">📌 Topik / Query yang Diuji: <b>"{res_current['query']}"</b></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                <span style="font-size: 1.15rem; font-weight: 700; color: {audit_curr['grade_badge']};">
+                    🏆 Evaluasi Kelayakan: {audit_curr['grade']}
+                </span>
+                <span style="font-size: 0.82rem; color: #cbd5e1;">
+                    ⚙️ Model: <b>{res_current['model']}</b> | Top-K: <b>{res_current['top_k']}</b> | Latensi Total: <b>{res_current['ret_latency'] + res_current['gen_latency']:.2f}s</b>
+                </span>
+            </div>
+            <div style="font-size: 0.85rem; color: #cbd5e1; margin-top: 8px; line-height: 1.5;">
+                📝 <b>Catatan Klinis:</b> {audit_curr['verdict']}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 5 LIVE KPI METRICS
+        st.markdown("#### 1. Status 5 Indikator Galat Medis Real-Time")
+        c1, c2, c3, c4, c5 = st.columns(5)
+        
+        with c1:
+            col_loss = "#ef4444" if audit_curr["has_info_loss"] else "#10b981"
+            status_loss = "Ada Fakta Hilang" if audit_curr["has_info_loss"] else "0% Hilang (Terjaring)"
+            st.markdown(f"""
             <div class="metric-card">
                 <div class="metric-lbl">Information Loss</div>
-                <div class="metric-val" style="color: #10b981;">5.6%</div>
-                <span style="font-size: 0.72rem; color: #94a3b8;">1/18 Skenario (Hanya Top-K=3)</span>
+                <div class="metric-val" style="color: {col_loss}; font-size: 1.25rem;">{status_loss}</div>
+                <span style="font-size: 0.72rem; color: #94a3b8;">Retensi Kata: {audit_curr['q_retention_pct']}%</span>
             </div>
             """, unsafe_allow_html=True)
             
-        with e_col2:
-            st.markdown("""
+        with c2:
+            col_faith = "#10b981" if not audit_curr["has_hallucination"] else "#ef4444"
+            status_faith = "Bebas Halusinasi" if not audit_curr["has_hallucination"] else "Klaim Liar"
+            st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-lbl">Halusinasi Liar</div>
-                <div class="metric-val" style="color: #10b981;">0.0%</div>
-                <span style="font-size: 0.72rem; color: #94a3b8;">100% Patuh Korpus Berita</span>
+                <div class="metric-lbl">Faithfulness (Faktual)</div>
+                <div class="metric-val" style="color: {col_faith};">{audit_curr['faithfulness_pct']}%</div>
+                <span style="font-size: 0.72rem; color: #94a3b8;">{status_faith} (Korpus Berita)</span>
             </div>
             """, unsafe_allow_html=True)
-
-        with e_col3:
-            st.markdown("""
+            
+        with c3:
+            col_incoh = "#10b981" if not audit_curr["has_incoherence"] else "#ef4444"
+            status_incoh = "Alur Mengalir Padu" if not audit_curr["has_incoherence"] else "Lompatan Topik"
+            st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-lbl">Incoherence (Sintaks)</div>
-                <div class="metric-val" style="color: #10b981;">0.0%</div>
-                <span style="font-size: 0.72rem; color: #94a3b8;">0 Kalimat Terpotong / Rusak</span>
+                <div class="metric-lbl">Koherensi Alur Makna</div>
+                <div class="metric-val" style="color: {col_incoh}; font-size: 1.25rem;">{audit_curr.get('coherence_pct', 100.0)}% Padu</div>
+                <span style="font-size: 0.72rem; color: #94a3b8;">{status_incoh} ({audit_curr.get('valid_transitions', 0)}/{audit_curr.get('total_transitions', 0)} transisi)</span>
             </div>
             """, unsafe_allow_html=True)
-
-        with e_col4:
-            st.markdown("""
+            
+        with c4:
+            col_redun = "#10b981" if not audit_curr["has_redundancy"] else "#f59e0b"
+            status_redun = "Bebas Repetisi" if not audit_curr["has_redundancy"] else "Ada Pengulangan"
+            st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-lbl">Redundansi Informasi</div>
-                <div class="metric-val" style="color: #f59e0b;">38.9%</div>
-                <span style="font-size: 0.72rem; color: #94a3b8;">7/18 Skenario (Ditekan Prompt)</span>
+                <div class="metric-lbl">Redundansi</div>
+                <div class="metric-val" style="color: {col_redun}; font-size: 1.25rem;">{status_redun}</div>
+                <span style="font-size: 0.72rem; color: #94a3b8;">Pemeriksaan n-gram repetitif</span>
             </div>
             """, unsafe_allow_html=True)
-
-        with e_col5:
-            st.markdown("""
+            
+        with c5:
+            col_len = "#38bdf8" if not audit_curr["has_length_anomaly"] else "#f59e0b"
+            status_len = "Ideal (70-240 kata)" if not audit_curr["has_length_anomaly"] else "Anomali Panjang"
+            st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-lbl">Anomali Panjang</div>
-                <div class="metric-val" style="color: #38bdf8;">27.8%</div>
-                <span style="font-size: 0.72rem; color: #94a3b8;">5/18 Skenario (Ideal ~175 Kata)</span>
+                <div class="metric-lbl">Panjang Teks</div>
+                <div class="metric-val" style="color: {col_len};">{audit_curr['word_count']} Kata</div>
+                <span style="font-size: 0.72rem; color: #94a3b8;">{status_len}</span>
             </div>
             """, unsafe_allow_html=True)
 
         st.markdown("---")
 
-        # 2. KOMPARASI TOP-K & TEMUAN UTAMA
-        st.markdown("#### 2. Komparasi Karakteristik Konfigurasi Top-K")
-        k_col1, k_col2, k_col3 = st.columns(3)
-        with k_col1:
-            st.info("""
-            **⚡ Top-K = 3 (Mode Cepat)**
-            - **Latensi:** Tercepat (~1.2 ms retrieval, ~5.5 s inferensi).
-            - **Kelebihan:** Sangat ringkas, meminimalkan token.
-            - **Kelemahan:** Rentan *Information Loss* (5.6%) karena fakta dari artikel pelengkap tidak terambil.
+        # 2. PEMERIKSAAN 3 PILAR MEDIS & DETAIL ROUGE
+        col_pil, col_rg = st.columns([1, 1])
+        with col_pil:
+            st.markdown("#### 2. Kepatuhan Kaidah 3 Pilar Medis")
+            p1_icon = "✅" if audit_curr["pilar_1"] else "❌"
+            p2_icon = "✅" if audit_curr["pilar_2"] else "❌"
+            p3_icon = "✅" if audit_curr["pilar_3"] else "❌"
+            st.markdown(f"""
+            - {p1_icon} **Pilar 1: Etiologi & Definisi Klinis** *(Menerangkan penyebab / mekanisme gangguan kesehatan)*
+            - {p2_icon} **Pilar 2: Gejala & Manifestasi Klinis** *(Menerangkan tanda-tanda yang dialami pasien)*
+            - {p3_icon} **Pilar 3: Solusi, Terapi & Pencegahan** *(Menerangkan pengobatan, gaya hidup, atau mitigasi)*
             """)
-        with k_col2:
-            st.success("""
-            **🏆 Top-K = 5 (Optimal / Rekomendasi Skripsi)**
-            - **Skor ROUGE-1:** `0.3106` (Tertinggi) | ROUGE-L: `0.1983`
-            - **Information Loss:** **0.0%** (Seluruh fakta medis terangkum utuh).
-            - **Kesimpulan:** *Sweet Spot* terbaik antara kelengkapan klinis dan efisiensi waktu komputasi.
-            """)
-        with k_col3:
-            st.warning("""
-            **📚 Top-K = 10 (Konteks Lengkap)**
-            - **Latensi:** Inferensi lebih lama (~12.5 s pada Ollama).
-            - **Kelebihan:** Informasi latar belakang sangat komprehensif.
-            - **Kelemahan:** Terjadi sedikit kenaikan redundansi akibat kesamaan bahasan antar-berita.
-            """)
+            st.caption(f"Skor Pemenuhan Pilar: **{audit_curr['pilar_count']} / 3 Pilar Terpenuhi**.")
+
+        with col_rg:
+            st.markdown("#### 3. Rincian Skor Evaluasi ROUGE Real-Time")
+            if rouge_curr:
+                st.markdown(f"""
+                - **ROUGE-1 (Unigram):** F1 = `{rouge_curr.get('rouge1', 0):.4f}` | Presisi: `{rouge_curr.get('rouge1_precision', 0):.4f}` | Recall: `{rouge_curr.get('rouge1_recall', 0):.4f}`
+                - **ROUGE-2 (Bigram):** F1 = `{rouge_curr.get('rouge2', 0):.4f}` | Presisi: `{rouge_curr.get('rouge2_precision', 0):.4f}` | Recall: `{rouge_curr.get('rouge2_recall', 0):.4f}`
+                - **ROUGE-L (Fluensi):** F1 = `{rouge_curr.get('rougeL', 0):.4f}` | Presisi: `{rouge_curr.get('rougeL_precision', 0):.4f}` | Recall: `{rouge_curr.get('rougeL_recall', 0):.4f}`
+                """)
+                if res_current.get("topic_title"):
+                    st.caption(f"📌 Dihitung terhadap Ground Truth: **{res_current['topic_title']}**")
+            else:
+                st.info("ROUGE tidak dihitung karena teks acuan emas (*ground truth*) tidak ditemukan untuk query bebas ini.")
 
         st.markdown("---")
 
-        # 3. ANALISIS LOST-IN-THE-MIDDLE
-        st.markdown("#### 3. Analisis Efek *Lost-in-the-Middle* (Posisi Dokumen dalam Konteks)")
-        st.markdown("""
-        Pengujian dilakukan pada konfigurasi **Top-K = 10** untuk memverifikasi apakah LLM lokal mengalami degradasi perhatian pada dokumen urutan tengah (*Liu et al., 2024*):
-        """)
-        litm_col1, litm_col2, litm_col3, litm_col4 = st.columns(4)
-        with litm_col1:
-            st.metric("Head Recall (Rank 1-3)", "43.5%", help="Retensi fakta pada dokumen posisi awal")
-        with litm_col2:
-            st.metric("Middle Recall (Rank 4-7)", "39.5%", help="Retensi fakta pada dokumen posisi tengah")
-        with litm_col3:
-            st.metric("Tail Recall (Rank 8-10)", "40.5%", help="Retensi fakta pada dokumen posisi akhir")
-        with litm_col4:
-            st.metric("Middle Decay", "-4.0%", delta="Terkendali", delta_color="normal", help="Penurunan atensi tengah hanya 4.0%")
-
-        st.caption("💡 **Temuan Ilmiah:** Penurunan retensi pada posisi tengah hanya sebesar **4.0%**, membuktikan bahwa strategi prompt *Context Stuffing* berbasis 3 Pilar Medis efektif menjaga retensi memori model.")
-
-        st.markdown("---")
-
-        # 4. GALERI GRAFIK PUBLIKASI RISET (FIGURES)
-        st.markdown("#### 4. Galeri Visualisasi Hasil Eksperimen (Gambar Publikasi 300 DPI)")
-        
-        figures_dir = os.path.join(config.REPORTS_DIR, "figures")
-        fig_options = {
-            "📊 Distribusi 5 Indikator Galat (Figure 4)": ("fig4_error_analysis_distribution.png", "Distribusi frekuensi 5 indikator galat kualitatif pada 18 skenario eksperimen RAG."),
-            "📉 Kurva Efek Lost-in-the-Middle (Figure 3)": ("fig3_lost_in_the_middle.png", "Kurva U-shape retensi informasi berdasarkan urutan posisi dokumen dalam konteks."),
-            "📈 Perbandingan Skor ROUGE per Top-K (Figure 1)": ("fig1_rouge_comparison_topk.png", "Perbandingan skor ROUGE-1, ROUGE-2, dan ROUGE-L pada skenario Top-K = 3, 5, dan 10."),
-            "⏱️ Trade-off Latensi vs Top-K (Figure 2)": ("fig2_latency_vs_topk.png", "Grafik trade-off antara waktu inferensi generator dengan penambahan jumlah dokumen terambil."),
-            "📦 Distribusi Boxplot ROUGE (Figure 5)": ("fig5_rouge_boxplot_distribution.png", "Distribusi sebaran nilai ROUGE F1 antar-topik kesehatan.")
-        }
-        
-        selected_fig_label = st.selectbox("Pilih Grafik Hasil Penelitian:", list(fig_options.keys()))
-        fig_filename, fig_caption = fig_options[selected_fig_label]
-        fig_path = os.path.join(figures_dir, fig_filename)
-        
-        if os.path.exists(fig_path):
-            st.image(fig_path, caption=f"{selected_fig_label}: {fig_caption}", use_container_width=True)
-        else:
-            st.info("File gambar grafik belum tersedia. Jalankan `python generate_charts.py` untuk membuatnya.")
-
-        st.markdown("---")
-
-        # 5. TABEL DATA MENTAH AUDIT
-        st.markdown("#### 5. Data Mentah Audit Empiris & Hasil Eksperimen")
-        
-        err_csv_path = os.path.join(config.REPORTS_DIR, "hasil_error_analysis.csv")
-        exp_csv_path = os.path.join(config.REPORTS_DIR, "hasil_eksperimen_skenario_e1_e4.csv")
-        
-        tab_data_choice = st.radio("Pilih Dataset Laporan:", ["Tabel Audit 5 Indikator Galat", "Tabel Lengkap Skor Eksperimen (E1-E4)"], horizontal=True)
-        
-        if tab_data_choice == "Tabel Audit 5 Indikator Galat" and os.path.exists(err_csv_path):
-            df_err_view = pd.read_csv(err_csv_path)
-            st.dataframe(df_err_view, use_container_width=True, hide_index=True)
-            st.caption("Keterangan: Nilai 1 menunjukkan indikasi terdeteksi, nilai 0 menunjukkan bebas galat.")
-        elif tab_data_choice == "Tabel Lengkap Skor Eksperimen (E1-E4)" and os.path.exists(exp_csv_path):
-            df_exp_view = pd.read_csv(exp_csv_path)
-            cols_to_show = ["topik", "top_k", "retrieval_sec", "generation_sec", "word_count", "rouge_1", "rouge_2", "rouge_l"]
-            available_cols = [c for c in cols_to_show if c in df_exp_view.columns]
-            st.dataframe(df_exp_view[available_cols], use_container_width=True, hide_index=True)
+        # 3. KOMPARASI BERDAMPINGAN: RINGKASAN VS GROUND TRUTH
+        if res_current.get("reference"):
+            with st.expander("🔍 Komparasi Teks Berdampingan (Ringkasan AI vs Acuan Emas Ground Truth)", expanded=True):
+                cmp1, cmp2 = st.columns(2)
+                with cmp1:
+                    st.markdown("**🤖 Ringkasan Hasil Generasi RAG AI:**")
+                    st.write(res_current["summary"])
+                with cmp2:
+                    st.markdown("**🎯 Teks Acuan Emas (Multi-Doc Ground Truth):**")
+                    st.write(res_current["reference"])
 
 
 # -------------------------------------------------------------

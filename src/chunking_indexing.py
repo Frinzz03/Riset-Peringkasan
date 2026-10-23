@@ -1,4 +1,5 @@
 import os
+import sys
 import re
 import json
 import requests
@@ -6,6 +7,12 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 import config
+
+if hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
 
 # Path file penyimpanan index vektor
 INDEX_EMBEDDINGS_FILE = os.path.join(config.CHROMA_PERSIST_DIR, "embeddings.npy")

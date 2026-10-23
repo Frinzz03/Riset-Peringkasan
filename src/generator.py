@@ -17,7 +17,7 @@ def generate_summary(prompt: str, model_name: str = config.DEFAULT_LLM_MODEL, te
     }
     
     try:
-        response = requests.post(url, json=payload, timeout=300)
+        response = requests.post(url, json=payload, timeout=900)
         response.raise_for_status()
         data = response.json()
         return data.get("response", "").strip()

@@ -21,8 +21,28 @@ archive/
 *.md
 !README.md
 
+# Offline Research Reports, Figures, and Thesis Artifacts (Private for Thesis Chapter 4)
+outputs/reports/
+
 # IDE & OS files
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Documentation & Draft Manuscripts (Word / PDF)
+docs/
+*.docx
+*.pdf
+
+# Testing & Experimental Folders
+tests/
+experiments/
+
+# Backup & Ad-hoc files
+outputs/index_db_backup_*/
+data/sample_benchmarks.json
+
+# Large Datasets & Vector DB Artifacts (hosted on Google Drive, see README.md)
+outputs/index_db/embeddings.npy
+data/berita_kesehatan_clean.csv

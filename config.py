@@ -22,7 +22,8 @@ def load_dotenv_simple(env_path):
 load_dotenv_simple(os.path.join(BASE_DIR, ".env"))
 
 # Data paths
-DATA_PATH = os.path.join(BASE_DIR, "data", "berita_kesehatan_fix.csv")
+DATA_PATH = os.path.join(BASE_DIR, "data", "berita_kesehatan_clean.csv")
+DATA_RAW_PATH = os.path.join(BASE_DIR, "data", "berita_kesehatan_fix.csv")
 DATA_WITH_REF_PATH = os.path.join(BASE_DIR, "data", "berita_kesehatan_with_reference.csv")
 CSV_DELIMITER = "|"
 
@@ -53,7 +54,7 @@ REFERENCE_PROVIDER = os.environ.get("REFERENCE_PROVIDER", "groq")
 # Ollama Models configuration
 OLLAMA_HOST = "http://localhost:11434"
 DEFAULT_LLM_MODEL = "qwen3:1.7b"       # Pilihan lain: "qwen3:0.6b"
-DEFAULT_EMBED_MODEL = "nomic-embed-text" # Pilihan lain: "all-minilm:33m"
+DEFAULT_EMBED_MODEL = "nomic-embed-text-v2-moe" # Model embedding multilingual MoE (Bahasa Indonesia)
 
 # Text Chunking parameters
 CHUNK_SIZE = 500       # Jumlah karakter per chunk
